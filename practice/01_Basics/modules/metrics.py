@@ -49,7 +49,19 @@ def norm_ED_distance(ts1, ts2):
 
     norm_ed_dist = 0
 
-    # INSERT YOUR CODE 
+    # INSERT YOUR CODE
+
+    T1_T2 = ts1.dot(ts2) #скалярное произведение
+
+    avg_ts1 = np.mean(ts1) #средее арифметичекое
+    avg_ts2 = np.mean(ts2)
+
+    std_ts1 = np.std(ts1) #стандартное отклонение
+    std_ts2 = np.std(ts2)
+
+    drob = (T1_T2-avg_ts1*avg_ts2*len(ts1))/(std_ts1*std_ts2*len(ts1))
+    norm_ed_dist = abs(2*len(ts1)*(1-drob))**0.5
+
 
     return norm_ed_dist
 
