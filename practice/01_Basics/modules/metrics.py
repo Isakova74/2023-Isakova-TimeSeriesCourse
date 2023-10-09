@@ -66,7 +66,7 @@ def norm_ED_distance(ts1, ts2):
     return norm_ed_dist
 
 
-def DTW_distance(ts1, ts2, r=None):
+def DTW_distance(ts1, ts2, r):
     """
     Calculate DTW distance.
 
@@ -93,7 +93,13 @@ def DTW_distance(ts1, ts2, r=None):
     M = sum(ts1.shape)
     dist_mat=np.zeros((M,M))
     for i in range(M):
-      for j in range(M):
+      maxj = i - r;
+      minj = i + r;
+      a = max(1,maxj);
+
+      b = min(range(M), minj);
+
+      for a in b:
         dist_mat[i,j] = (ts1[i]- ts2[j])**2
 
     M,M=dist_mat.shape

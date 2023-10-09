@@ -240,6 +240,18 @@ def plot_bestmatch_results(ts, query, bestmatch_results):
     """
 
     # INSERT YOUR CODE
+    query_len = query.shape[0]
+    ts_len = ts.shape[0]
+    
+    fig = make_subplots(rows=1, cols=2, column_widths=[0.1, 0.9], subplot_titles=("Query", "Time Series"), horizontal_spacing=0.04)
+    fig.add_trace(go.Scatter(x=np.arange(query_len), y=query, line=dict(color=px.colors.qualitative.Plotly[1])),
+                row=1, col=1)
+    fig.add_trace(go.Scatter(x=np.arange(ts_len), y=ts, line=dict(color=px.colors.qualitative.Plotly[0])),
+                row=1, col=2)
+    for i in range(len(bestmatch_results['index'])):
+      fig.add_trace(go.Scatter(x=np.arange(bestmatch_results['index'][i],bestmatch_results['index'][i]+query_len ), y=ts[bestmatch_results['index'][i]:bestmatch_results['index'][i]+query_len], line=dict(color=px.colors.qualitative.Plotly[1])),
+                row=1, col=2)
+    fig.show(renderer = "colab")
 
 
 def pie_chart(labels, values, plot_title='Pie chart'):

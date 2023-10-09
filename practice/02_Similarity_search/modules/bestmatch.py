@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 
+
 from modules.utils import *
 from modules.metrics import *
 
@@ -150,8 +151,25 @@ class NaiveBestMatchFinder(BestMatchFinder):
         else:
             excl_zone = int(np.ceil(m / self.excl_zone_denom))
         
-        # INSERT YOUR CODE
+        #best_match_results = {}
+        dist_list = []
+        query_data = z_normalize(self.query)
+        for i in range(N-m+1):
+          query_subsequence = self.ts_data[i]
+          query_subsequence = z_normalize(query_subsequence)
+          dist= DTW_distance(query_subsequence, query_data)
 
+
+
+          if dist < bsf:
+            bsf = dist
+            dist_list.append(dist)
+            #best_match_results['distance'] = dist
+            #best_match_results['index'] = i
+            self.bestmatch = super()._top_k_match(dist_list, m, bsf, excl_zone )
+          else:
+            dist = np.inf
+            dist_list.append(dist)
         return self.bestmatch
 
 
@@ -240,6 +258,7 @@ class UCR_DTW(BestMatchFinder):
         self.lb_KeoghCQ_num = 0
         
         # INSERT YOUR CODE
+        
 
         return {'index' : self.bestmatch['index'],
                 'distance' : self.bestmatch['distance'],
