@@ -64,7 +64,7 @@ def norm_ED_distance(ts1, ts2):
     return norm_ed_dist
 
 
-def DTW_distance(ts1, ts2, r=None):
+def DTW_distance(ts1, ts2, r=0.03):
     """
     Calculate DTW distance.
 
@@ -88,24 +88,30 @@ def DTW_distance(ts1, ts2, r=None):
     dtw_dist = 0
 
     # INSERT YOUR CODE
-    dtw_dist = 0
-    M = sum(ts1.shape)
-    dist_mat=np.zeros((M,M))
-    for i in range(M):
-
-      for j in range(M):
+    r = int(np.round(r*len(ts1)))
+    
+    N, M = sum(ts1.shape), sum(ts2.shape)
+    dist_mat=np.zeros((N,M))
+    for i in range(N):
+      start_j = max(1, i-r)-1
+      end_j = min(len(ts1),i+r)-1
+      for j in range(start_j, end_j):
         dist_mat[i,j] = (ts1[i]- ts2[j])**2
-
-    M,M=dist_mat.shape
-    D_mat = np.zeros((M+1,M+1))
-    for i in range(1,M+1):
+        
+      N,M=dist_mat.shape
+      D_mat = np.zeros((N+1,M+1))
+      for i in range(1,N+1):
         D_mat[i,0]=np.inf
-    for i in range(1,M+1):
+      for i in range(1,M+1):
         D_mat[0,i]=np.inf
-
-    for i in range(1,M+1):
-      for j in range(1,M+1):
-        D_mat[i][j] = dist_mat[i-1][j-1]+min(D_mat[i-1][j],D_mat[i,j-1],D_mat[i-1][j-1])
-    return  D_mat[M][M]
+        
+      for i in range(1,N+1):
+        start_j = max(1, i-r)
+        end_j = min(len(ts1),i+r)
+        
+        for j in range(start_j,end_j):
+          D_mat[i][j] = dist_mat[i-1][j-1]+min(D_mat[i-1][j],D_mat[i,j-1],D_mat[i-1][j-1])
+      
+      return D_mat[N][M]
 
     #return dtw_dist
