@@ -151,7 +151,6 @@ class NaiveBestMatchFinder(BestMatchFinder):
         else:
             excl_zone = int(np.ceil(m / self.excl_zone_denom))
         
-
         ##distance = [DTW_distance(self.ts_data[i], self.query) for i in range(N)]
 
         ##self.bestmatch = self._top_k_match(distance, m, bsf, excl_zone)
@@ -162,22 +161,18 @@ class NaiveBestMatchFinder(BestMatchFinder):
         #best_match_results = {}
         dist_list = []
         query_data = z_normalize(self.query)
-        for i in range(N-m+1):
+        for i in range(N):
           query_subsequence = self.ts_data[i]
           query_subsequence = z_normalize(query_subsequence)
           dist= DTW_distance(query_subsequence, query_data)
 
-
-
           if dist < bsf:
-            bsf = dist
             dist_list.append(dist)
-            #best_match_results['distance'] = dist
-            #best_match_results['index'] = i
             self.bestmatch = super()._top_k_match(dist_list, m, bsf, excl_zone )
+            if len(self.bestmatch['index'])==self.top_k:
+              bsf = self.bestmatch['distance'][self.top_k-1]
           else:
-            dist = np.inf
-            dist_list.append(dist)
+            dist_list.append(np.inf)
         return self.bestmatch
 
 
@@ -224,9 +219,7 @@ class UCR_DTW(BestMatchFinder):
         if len(subs1) != len(subs2):
           raise ValueError("Подпоследовательности должны иметь одинаковую длину.")
     
-        lb_Kim = 0
-    
-        lb_Kim = np.sqrt((subs1[0] - subs2[0])**2) + np.sqrt((subs1[-1] - subs2[-1])**2)
+        lb_Kim = (subs1[0] - subs2[0])**2 + (subs1[-1] - subs2[-1])**2 ##np.sqrt((subs1[0] - subs2[0])**2) + np.sqrt((subs1[-1] - subs2[-1])**2)
 
         return lb_Kim
 
@@ -260,12 +253,12 @@ class UCR_DTW(BestMatchFinder):
     
         res = []
         for i in range(len(subs1)):
-            if subs2[i] > max(subs1[max(0, i-r):min(len(subs1), i+r+1)]):
-                res.append((subs2[i] - max(subs1[max(0, i-r):min(len(subs1), i+r+1)]))**2)
-            elif subs2[i] < min(subs1[max(0, i-r):min(len(subs1), i+r+1)]):
-                res.append((subs2[i] - min(subs1[max(0, i-r):min(len(subs1), i+r+1)]))**2)
+            if subs2[i] > max(subs1[max(0, i-r):min(len(subs1), i+r)]):
+              res.append((subs2[i] - max(subs1[max(0, i-r):min(len(subs1), i+r)]))**2)
+            elif subs2[i] < min(subs1[max(0, i-r):min(len(subs1), i+r)]):
+              res.append((subs2[i] - min(subs1[max(0, i-r):min(len(subs1), i+r)]))**2)
             else:
-                res.append(0)
+              res.append(0)
         
         lb_Keogh = sum(res)
 
@@ -297,29 +290,40 @@ class UCR_DTW(BestMatchFinder):
         # INSERT YOUR CODE
         distances = []
         
+        if self.normalize:
+            self.query = z_normalize(self.query)
+ 
         for subseq_idx in range(N):
-            subseq = self.ts_data[subseq_idx]
-            
-            if self.normalize:
-                subseq = z_normalize(subseq)
-                self.query = z_normalize(self.query)
+          subseq = self.ts_data[subseq_idx]
+     
+          if self.normalize:
+            subseq = z_normalize(subseq)
 
-            if self._LB_Kim(self.query, subseq) > bsf:
-                self.lb_Kim_num += 1
+          if self._LB_Kim(self.query, subseq) > bsf:
+            self.lb_Kim_num += 1
+            print(self._LB_Kim(self.query, subseq))
+            distances.append(np.inf)
 
-            elif self._LB_Keogh(self.query, subseq, int(self.r*m)) > bsf:
-                self.lb_KeoghQC_num += 1
+          elif self._LB_Keogh(self.query, subseq, int(self.r*m)) > bsf:
+            self.lb_KeoghQC_num += 1
+            distances.append(np.inf)
 
-            elif self._LB_Keogh(subseq, self.query, int(self.r*m)) > bsf:
-                self.lb_KeoghCQ_num += 1
+          elif self._LB_Keogh(subseq, self.query, int(self.r*m)) > bsf:
+            self.lb_KeoghCQ_num += 1
+            distances.append(np.inf)
 
-            else:
-              dist = DTW_distance(self.query, subseq, self.r)
+          else:
+            dist = DTW_distance(self.query, subseq, self.r)
+            #print(f'dist = {dist}')
+            #print(f'bsf = {bsf}')
+
+            if dist < bsf:
               distances.append(dist)
-              if dist < bsf:
-                  bsf = dist
-
-        self.bestmatch = self._top_k_match(distances, m, bsf, excl_zone)
+              self.bestmatch = super()._top_k_match(distances, m, bsf, excl_zone )
+              if len(self.bestmatch['index'])==self.top_k:
+                bsf = self.bestmatch['distance'][self.top_k-1]
+            else:
+              distances.append(np.inf)
 
 
         
