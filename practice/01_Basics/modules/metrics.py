@@ -98,14 +98,19 @@ def DTW_distance(ts1, ts2, r=None):
 
     N,M=dist_mat.shape
     D_mat = np.zeros((N+1,M+1))
-    for i in range(1,N+1):
-        D_mat[i,0]=np.inf
-    for i in range(1,M+1):
-        D_mat[0,i]=np.inf
+    D_mat[:,:] = float('Inf')
+    D_mat[0,0] = 0
 
-    for i in range(1,N+1):
-      for j in range(1,M+1):
-        D_mat[i][j] = dist_mat[i-1][j-1]+min(D_mat[i-1][j],D_mat[i,j-1],D_mat[i-1][j-1])
+
+    if r == None:
+      for i in range(1,N+1):
+        for j in range(1,M+1):
+          D_mat[i][j] = dist_mat[i-1][j-1]+min(D_mat[i-1][j],D_mat[i,j-1],D_mat[i-1][j-1])
+    else:
+      for i in range(1,N+1):
+        for j in range(max(1, i - int(np.floor(M * r))), min(M, i + int(np.floor(M * r))) + 1):
+          D_mat[i][j] = dist_mat[i-1][j-1]+min(D_mat[i-1][j],D_mat[i,j-1],D_mat[i-1][j-1])
+    
     return  D_mat[N][M]
 
     #return dtw_dist
